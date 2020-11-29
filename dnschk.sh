@@ -1,6 +1,6 @@
 #!/bin/bash
 
-if [ ! -f /usr/bin/dig ] ; then
+if [ "$(whereis dig | grep "\/" -c)" = "0" ] ; then
 	echo "Error: the command dig needs to be available. Please install it first"
 	echo "in most distributions it's in the dnsutils package"
 	exit
