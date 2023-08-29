@@ -9,20 +9,20 @@ fi
 dnsservers=( "" "1.1.1.1" "8.8.8.8" "9.9.9.9" )
 prefixes=( "" "www." )
 
-if [[ "$@" = "" || "$@" = "-h" || "$@" = "--help" ]] ; then
+if [[ "$1" = "" || "$1" = "-h" || "$1" = "--help" || "$2" != "" ]] ; then
 	echo "usage: ./dnschk.sh domainname.de"
 	exit
 fi
-
-domain="$@"
+domain="$1"
 
 function digres () {
 	if [ "${dns}" = "" ] ; then
 		echo -n "normal:   "
+		result="$(dig "${dget}" | grep -e "[0-9]\sIN\s[A\|CNAME]")"
 	else
 		echo -n "${dns}: "
+		result="$(dig "${dget}" "${dns}" | grep -e "[0-9]\sIN\s[A\|CNAME]")"
 	fi
-	result="`dig \"${dget}\" ${dns} | grep -e \"[0-9]\sIN\s[A\|CNAME]\"`"
 	if [ "$result" = "" ] ; then
 		echo "no Result"
 	else
