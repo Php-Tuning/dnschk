@@ -23,7 +23,7 @@ function digResult () {
 		echo -n "normal:   "
 		result="$(dig "${domainGet}" | grep -e "[0-9]\sIN\s[A\|CNAME]")"
 	else
-		echo -n "${dnsServer}: "
+		echo -n "@${dnsServer}: "
 		result="$(dig "${domainGet}" "@${dnsServer}" | grep -e "[0-9]\sIN\s[A\|CNAME]")"
 	fi
 	test "${result}" = "" && result="no Result"
