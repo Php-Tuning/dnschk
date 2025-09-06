@@ -1,18 +1,15 @@
 #!/usr/bin/env bash
 
 function checkDependencies() {
-	if [ "$(whereis dig | grep "\/" -c)" = "0" ] ; then
-		echo "Error: the command dig needs to be available. Please install it first"
-		echo "in most distributions it's in the dnsutils package"
-		exit
-	fi
+	test "$(whereis dig | grep "\/" -c)" -gt 0 && return
+	echo "Error: the command dig needs to be available. Please install it first"
+	echo "in most distributions it's in the dnsutils package"
+	exit
 }
 
 function checkArgs() {
-	if [[ "$#" != "1" || "$1" = "-h" || "$1" = "--help" ]] ; then
-		echo "usage: ./dnschk.sh domainname.de"
-		exit
-	fi
+	[[ "$#" != "1" || "$1" = "-h" || "$1" = "--help" ]] \
+		&& echo "usage: ./dnschk.sh domainname.de" && exit
 }
 
 function digResult () {
