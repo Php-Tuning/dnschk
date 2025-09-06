@@ -1,44 +1,50 @@
-#!/bin/bash
+#!/usr/bin/env bash
 
-if [ "$(whereis dig | grep "\/" -c)" = "0" ] ; then
-	echo "Error: the command dig needs to be available. Please install it first"
-	echo "in most distributions it's in the dnsutils package"
-	exit
-fi
-#defaults to system dns, cloudflare (1.1.1.1), google (8.8.8.8) and Quad9 (9.9.9.9)
-dnsservers=( "" "1.1.1.1" "8.8.8.8" "9.9.9.9" )
-prefixes=( "" "www." )
+function checkDependencies() {
+	if [ "$(whereis dig | grep "\/" -c)" = "0" ] ; then
+		echo "Error: the command dig needs to be available. Please install it first"
+		echo "in most distributions it's in the dnsutils package"
+		exit
+	fi
+}
 
-if [[ "$1" = "" || "$1" = "-h" || "$1" = "--help" || "$2" != "" ]] ; then
-	echo "usage: ./dnschk.sh domainname.de"
-	exit
-fi
-domain="$1"
+function checkArgs() {
+	if [[ "$#" != "1" || "$1" = "-h" || "$1" = "--help" ]] ; then
+		echo "usage: ./dnschk.sh domainname.de"
+		exit
+	fi
+}
 
-function digres () {
-	if [ "${dns}" = "" ] ; then
+function digResult () {
+	local domainGet="$1"
+	local dnsServer="$2"
+	local result=""
+	if [ "${dnsServer}" = "" ] ; then
 		echo -n "normal:   "
-		result="$(dig "${dget}" | grep -e "[0-9]\sIN\s[A\|CNAME]")"
+		result="$(dig "${domainGet}" | grep -e "[0-9]\sIN\s[A\|CNAME]")"
 	else
-		echo -n "${dns}: "
-		result="$(dig "${dget}" "${dns}" | grep -e "[0-9]\sIN\s[A\|CNAME]")"
+		echo -n "${dnsServer}: "
+		result="$(dig "${domainGet}" "@${dnsServer}" | grep -e "[0-9]\sIN\s[A\|CNAME]")"
 	fi
-	if [ "$result" = "" ] ; then
-		echo "no Result"
-	else
-		echo "$result"
-	fi
+	test "${result}" = "" && result="no Result"
+	echo "${result}"
+}
+
+function main() {
+	checkDependencies
+	checkArgs "$@"
+
+	local domain="$1"
+	local prefix=""
+	for prefix in "" "www." ; do
+		echo "=== query domain ${prefix}${domain} ==="
+		#system dns, cloudflare (1.1.1.1), google (8.8.8.8) and Quad9 (9.9.9.9)
+		for dns in "" "1.1.1.1" "8.8.8.8" "9.9.9.9" ; do
+			digResult "${prefix}${domain}" "${dns}"
+		done
+	done
 }
 
 ###---
 
-for prefix in "${prefixes[@]}" ; do
-	dget="${prefix}${domain}"
-	echo "=== query domain ${dget} ==="
-	for dns in "${dnsservers[@]}" ; do
-		if [ "$dns" != "" ] ; then
-			dns="@${dns}"
-		fi
-		digres
-	done
-done
+main "$@"
